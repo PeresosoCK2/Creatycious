@@ -1,0 +1,46 @@
+version: '3.8'
+services:
+  backend:
+    image: yourdockerhubusername/creatycios-backend:latest
+    restart: always
+    env_file: .env.prod
+    networks:
+      - webnet
+    depends_on:
+      - redis
+    volumes:
+      - backend_data:/app/data
+
+  frontend:
+    image: yourdockerhubusername/creatycios-frontend:latest
+    restart: always
+    env_file: .env.prod
+    networks:
+      - webnet
+
+  nginx:
+    image: nginx:stable-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./deploy/nginx/certs:/etc/letsencrypt:ro
+      - ./deploy/nginx/html:/usr/share/nginx/html:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - webnet
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    networks:
+      - webnet
+
+volumes:
+  backend_data:
+
+networks:
+  webnet:
+    driver: bridge
